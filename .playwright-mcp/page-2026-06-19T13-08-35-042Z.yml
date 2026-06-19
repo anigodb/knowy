@@ -1,0 +1,97 @@
+- generic [ref=e2]:
+  - complementary [ref=e3]:
+    - generic [ref=e4]:
+      - text: ◆ Knowy
+      - generic [ref=e5]: v0.1
+    - textbox "Search everything..." [ref=e7]
+    - navigation [ref=e8]:
+      - button "◉ Dashboard" [ref=e9] [cursor=pointer]:
+        - generic [ref=e10]: ◉
+        - generic [ref=e11]: Dashboard
+      - button "💬 Chat 4" [ref=e12] [cursor=pointer]:
+        - generic [ref=e13]: 💬
+        - generic [ref=e14]: Chat
+        - generic [ref=e15]: "4"
+      - button "☑ Tasks 3" [ref=e16] [cursor=pointer]:
+        - generic [ref=e17]: ☑
+        - generic [ref=e18]: Tasks
+        - generic [ref=e19]: "3"
+      - button "📅 Calendar" [ref=e20] [cursor=pointer]:
+        - generic [ref=e21]: 📅
+        - generic [ref=e22]: Calendar
+      - button "📄 Pages" [active] [ref=e23] [cursor=pointer]:
+        - generic [ref=e24]: 📄
+        - generic [ref=e25]: Pages
+      - button "🗒 Notes" [ref=e26] [cursor=pointer]:
+        - generic [ref=e27]: 🗒
+        - generic [ref=e28]: Notes
+      - button "📖 Knowledge" [ref=e29] [cursor=pointer]:
+        - generic [ref=e30]: 📖
+        - generic [ref=e31]: Knowledge
+      - button "📁 Files" [ref=e32] [cursor=pointer]:
+        - generic [ref=e33]: 📁
+        - generic [ref=e34]: Files
+      - button "⚙ Settings" [ref=e36] [cursor=pointer]:
+        - generic [ref=e37]: ⚙
+        - generic [ref=e38]: Settings
+  - generic [ref=e39]:
+    - banner [ref=e40]:
+      - generic [ref=e41]: Pages
+      - generic [ref=e253]:
+        - button "Cancel" [ref=e254] [cursor=pointer]
+        - button "Save" [ref=e255] [cursor=pointer]
+    - generic [ref=e257]:
+      - generic [ref=e258]:
+        - generic [ref=e259]:
+          - heading "All Pages" [level=3] [ref=e260]
+          - textbox "Search pages..." [ref=e261]
+        - generic [ref=e262]:
+          - generic [ref=e263] [cursor=pointer]:
+            - generic [ref=e264]: Q3 Planning Meeting Notes
+            - generic [ref=e265]: "## Attendees\\n- Alice\\n- Bob\\n\\n## Agenda\\n1. Roadmap review..."
+          - generic [ref=e266] [cursor=pointer]:
+            - generic [ref=e267]: API Migration Strategy
+            - generic [ref=e268]: "# API Migration Strategy\\n\\n## Goals\\n- Move from SQLite to Postgres..."
+          - generic [ref=e269] [cursor=pointer]:
+            - generic [ref=e270]: Remote Work Policy Reference
+            - generic [ref=e271]: "# Remote Work Policy\\n\\nLast updated: June 2026\\n\\n## Policy..."
+          - generic [ref=e272] [cursor=pointer]:
+            - generic [ref=e273]: Sprint Retro — June 2026
+            - generic [ref=e274]: "## What went well\\n- Shipping velocity improved\\n- Better test coverage..."
+      - generic [ref=e275]:
+        - generic [ref=e276]:
+          - heading "Q3 Planning Meeting Notes" [level=3] [ref=e277]
+          - button "Edit" [ref=e278] [cursor=pointer]
+        - generic [ref=e279]:
+          - heading "Q3 Planning Meeting Notes" [level=1] [ref=e280]
+          - paragraph [ref=e281]:
+            - strong [ref=e282]: "Date:"
+            - text: June 18, 2026
+            - strong [ref=e283]: "Attendees:"
+            - text: Alice, Bob, Charlie
+          - heading "Agenda" [level=2] [ref=e284]
+          - list [ref=e285]:
+            - listitem [ref=e286]: Review Q2 outcomes
+            - listitem [ref=e287]: Define Q3 priorities
+            - listitem [ref=e288]: Assign owners
+          - heading "Q3 Priorities" [level=2] [ref=e289]
+          - paragraph [ref=e290]:
+            - strong [ref=e291]: 1. Platform Migration
+            - text: "— Move core services to new infrastructure. Estimated 6 weeks. Owner: Bob."
+          - paragraph [ref=e292]:
+            - strong [ref=e293]: 2. Feature Parity
+            - text: "— Ensure all existing features work on new stack. Owner: Alice."
+          - paragraph [ref=e294]:
+            - strong [ref=e295]: 3. Performance
+            - text: "— Target 99th percentile latency under 200ms. Owner: Charlie."
+          - heading "Action Items" [level=2] [ref=e296]
+          - paragraph [ref=e297]:
+            - text: •
+            - code [ref=e298]: "@Bob"
+            - text: — Research migration effort (due Jul 15)
+            - text: •
+            - code [ref=e299]: "@Alice"
+            - text: — Draft feature parity checklist (due Jul 10)
+            - text: •
+            - code [ref=e300]: "@Charlie"
+            - text: — Set up performance benchmarks (due Jul 12)

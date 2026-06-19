@@ -1,0 +1,89 @@
+- generic [ref=e2]:
+  - complementary [ref=e3]:
+    - generic [ref=e4]:
+      - text: ◆ Knowy
+      - generic [ref=e5]: v0.1
+    - textbox "Search everything..." [ref=e7]
+    - navigation [ref=e8]:
+      - button "◉ Dashboard" [ref=e9] [cursor=pointer]:
+        - generic [ref=e10]: ◉
+        - generic [ref=e11]: Dashboard
+      - button "💬 Chat 4" [active] [ref=e12] [cursor=pointer]:
+        - generic [ref=e13]: 💬
+        - generic [ref=e14]: Chat
+        - generic [ref=e15]: "4"
+      - button "☑ Tasks 3" [ref=e16] [cursor=pointer]:
+        - generic [ref=e17]: ☑
+        - generic [ref=e18]: Tasks
+        - generic [ref=e19]: "3"
+      - button "📅 Calendar" [ref=e20] [cursor=pointer]:
+        - generic [ref=e21]: 📅
+        - generic [ref=e22]: Calendar
+      - button "📄 Pages" [ref=e23] [cursor=pointer]:
+        - generic [ref=e24]: 📄
+        - generic [ref=e25]: Pages
+      - button "🗒 Notes" [ref=e26] [cursor=pointer]:
+        - generic [ref=e27]: 🗒
+        - generic [ref=e28]: Notes
+      - button "📖 Knowledge" [ref=e29] [cursor=pointer]:
+        - generic [ref=e30]: 📖
+        - generic [ref=e31]: Knowledge
+      - button "📁 Files" [ref=e32] [cursor=pointer]:
+        - generic [ref=e33]: 📁
+        - generic [ref=e34]: Files
+      - button "⚙ Settings" [ref=e36] [cursor=pointer]:
+        - generic [ref=e37]: ⚙
+        - generic [ref=e38]: Settings
+  - generic [ref=e39]:
+    - banner [ref=e40]:
+      - generic [ref=e41]: Chat
+    - generic [ref=e53]:
+      - generic [ref=e54]:
+        - generic [ref=e55]:
+          - heading "Chat Sessions" [level=3] [ref=e56]
+          - textbox "Search sessions..." [ref=e57]
+        - generic [ref=e58]:
+          - generic [ref=e59] [cursor=pointer]:
+            - generic [ref=e60]: Q3 Roadmap Planning
+            - generic [ref=e61]: Let's finalize the milestones for next quarter...
+            - generic [ref=e62]:
+              - generic [ref=e63]: 24 messages
+              - generic [ref=e64]: 2h ago
+          - generic [ref=e65] [cursor=pointer]:
+            - generic [ref=e66]: Dev Ops Discussion
+            - generic [ref=e67]: The build is failing on the CI pipeline, we need to...
+            - generic [ref=e68]:
+              - generic [ref=e69]: 12 messages
+              - generic [ref=e70]: 1d ago
+          - generic [ref=e71] [cursor=pointer]:
+            - generic [ref=e72]: API Migration Planning
+            - generic [ref=e73]: I think we should go with Postgres for the write model
+            - generic [ref=e74]:
+              - generic [ref=e75]: 8 messages
+              - generic [ref=e76]: 3d ago
+          - generic [ref=e77] [cursor=pointer]:
+            - generic [ref=e78]: Morning Briefing
+            - generic [ref=e79]: What's on my plate today?
+            - generic [ref=e80]:
+              - generic [ref=e81]: 3 messages
+              - generic [ref=e82]: 5d ago
+      - generic [ref=e83]:
+        - generic [ref=e84]:
+          - heading "Q3 Roadmap Planning" [level=3] [ref=e85]
+          - generic [ref=e86]: — 24 messages
+        - generic [ref=e87]:
+          - generic [ref=e88]:
+            - text: Good morning! I see you have 3 pending tasks and a 10 AM standup today. Ready to pick up where we left off?
+            - generic [ref=e89]: Assistant · 2h ago
+          - generic [ref=e90]:
+            - text: Yes, let's finalize the Q3 milestones. What did we cover last time?
+            - generic [ref=e91]: You · 2h ago
+          - generic [ref=e92]:
+            - text: "We identified three main tracks: Platform Migration, Feature Parity, and Performance. You created tasks for research on each. The Platform Migration task is still pending — want to start there?"
+            - generic [ref=e93]: Assistant · 2h ago
+          - generic [ref=e94]:
+            - text: Let's start with that. What's the scope?
+            - generic [ref=e95]: You · 1h ago
+        - generic [ref=e96]:
+          - textbox "Type a message..." [ref=e97]
+          - button "Send" [ref=e98] [cursor=pointer]

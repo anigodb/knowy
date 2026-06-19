@@ -1,0 +1,104 @@
+- generic [ref=e2]:
+  - complementary [ref=e3]:
+    - generic [ref=e4]:
+      - text: ◆ Knowy
+      - generic [ref=e5]: v0.1
+    - textbox "Search everything..." [ref=e7]
+    - navigation [ref=e8]:
+      - button "◉ Dashboard" [ref=e9] [cursor=pointer]:
+        - generic [ref=e10]: ◉
+        - generic [ref=e11]: Dashboard
+      - button "💬 Chat 4" [ref=e12] [cursor=pointer]:
+        - generic [ref=e13]: 💬
+        - generic [ref=e14]: Chat
+        - generic [ref=e15]: "4"
+      - button "☑ Tasks 3" [ref=e16] [cursor=pointer]:
+        - generic [ref=e17]: ☑
+        - generic [ref=e18]: Tasks
+        - generic [ref=e19]: "3"
+      - button "📅 Calendar" [active] [ref=e20] [cursor=pointer]:
+        - generic [ref=e21]: 📅
+        - generic [ref=e22]: Calendar
+      - button "📄 Pages" [ref=e23] [cursor=pointer]:
+        - generic [ref=e24]: 📄
+        - generic [ref=e25]: Pages
+      - button "🗒 Notes" [ref=e26] [cursor=pointer]:
+        - generic [ref=e27]: 🗒
+        - generic [ref=e28]: Notes
+      - button "📖 Knowledge" [ref=e29] [cursor=pointer]:
+        - generic [ref=e30]: 📖
+        - generic [ref=e31]: Knowledge
+      - button "📁 Files" [ref=e32] [cursor=pointer]:
+        - generic [ref=e33]: 📁
+        - generic [ref=e34]: Files
+      - button "⚙ Settings" [ref=e36] [cursor=pointer]:
+        - generic [ref=e37]: ⚙
+        - generic [ref=e38]: Settings
+  - generic [ref=e39]:
+    - banner [ref=e40]:
+      - generic [ref=e41]: Calendar
+    - generic [ref=e147]:
+      - generic [ref=e148]:
+        - generic [ref=e149]:
+          - heading "June 2026" [level=3] [ref=e150]
+          - generic [ref=e151]:
+            - button "◀" [ref=e152] [cursor=pointer]
+            - button "Today" [ref=e153] [cursor=pointer]
+            - button "▶" [ref=e154] [cursor=pointer]
+        - generic [ref=e155]:
+          - generic [ref=e156]: Sun
+          - generic [ref=e157]: Mon
+          - generic [ref=e158]: Tue
+          - generic [ref=e159]: Wed
+          - generic [ref=e160]: Thu
+          - generic [ref=e161]: Fri
+          - generic [ref=e162]: Sat
+        - generic [ref=e163]:
+          - generic [ref=e165] [cursor=pointer]: "25"
+          - generic [ref=e167] [cursor=pointer]: "26"
+          - generic [ref=e169] [cursor=pointer]: "27"
+          - generic [ref=e171] [cursor=pointer]: "28"
+          - generic [ref=e173] [cursor=pointer]: "29"
+          - generic [ref=e175] [cursor=pointer]: "30"
+          - generic [ref=e177] [cursor=pointer]: "31"
+          - generic [ref=e179] [cursor=pointer]: "1"
+          - generic [ref=e181] [cursor=pointer]: "2"
+          - generic [ref=e183] [cursor=pointer]: "3"
+          - generic [ref=e185] [cursor=pointer]: "4"
+          - generic [ref=e188] [cursor=pointer]: "5"
+          - generic [ref=e190] [cursor=pointer]: "6"
+          - generic [ref=e193] [cursor=pointer]: "7"
+          - generic [ref=e195] [cursor=pointer]: "8"
+          - generic [ref=e197] [cursor=pointer]: "9"
+          - generic [ref=e199] [cursor=pointer]: "10"
+          - generic [ref=e201] [cursor=pointer]: "11"
+          - generic [ref=e203] [cursor=pointer]: "12"
+          - generic [ref=e205] [cursor=pointer]: "13"
+          - generic [ref=e207] [cursor=pointer]: "14"
+          - generic [ref=e209] [cursor=pointer]: "19"
+          - generic [ref=e212] [cursor=pointer]: "20"
+          - generic [ref=e214] [cursor=pointer]: "21"
+          - generic [ref=e216] [cursor=pointer]: "22"
+          - generic [ref=e218] [cursor=pointer]: "23"
+          - generic [ref=e220] [cursor=pointer]: "24"
+          - generic [ref=e222] [cursor=pointer]: "25"
+          - generic [ref=e224] [cursor=pointer]: "26"
+          - generic [ref=e227] [cursor=pointer]: "27"
+          - generic [ref=e229] [cursor=pointer]: "28"
+          - generic [ref=e231] [cursor=pointer]: "29"
+          - generic [ref=e233] [cursor=pointer]: "30"
+          - generic [ref=e235] [cursor=pointer]: "1"
+          - generic [ref=e237] [cursor=pointer]: "2"
+          - generic [ref=e239] [cursor=pointer]: "3"
+          - generic [ref=e241] [cursor=pointer]: "4"
+      - generic [ref=e242]:
+        - heading "Fri, Jun 19 — Events" [level=4] [ref=e243]
+        - generic [ref=e244]:
+          - generic [ref=e245]: 10:00 – 10:30
+          - generic [ref=e246]: Morning Standup
+        - generic [ref=e247]:
+          - generic [ref=e248]: 14:00 – 15:30
+          - generic [ref=e249]: Design Review
+        - generic [ref=e250]:
+          - generic [ref=e251]: 16:00 – 16:30
+          - generic [ref=e252]: 1:1 with Manager

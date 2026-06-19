@@ -1,0 +1,7 @@
+[  979441ms] [ERROR] Refused to get unsafe header "X-Sg-Cs" @ https://www.google.com/search?q=npmjs&oq=npmjs&gs_lcrp=EgZjaHJvbWUyDggAEEUYORhDGIAEGIoFMgcIARAAGIAEMgcIAhAAGIAEMgcIAxAAGIAEMgcIBBAAGIAEMgcIBRAAGIAEMgcIBhAAGIAEMgcIBxAAGIAEMgcICBAAGIAE0gEIMTUzN2owajSoAgCwAgA&sourceid=chrome&ie=UTF-8:43
+[  979441ms] [ERROR] Refused to get unsafe header "X-Sorry-Redirect" @ https://www.google.com/search?q=npmjs&oq=npmjs&gs_lcrp=EgZjaHJvbWUyDggAEEUYORhDGIAEGIoFMgcIARAAGIAEMgcIAhAAGIAEMgcIAxAAGIAEMgcIBBAAGIAEMgcIBRAAGIAEMgcIBhAAGIAEMgcIBxAAGIAEMgcICBAAGIAE0gEIMTUzN2owajSoAgCwAgA&sourceid=chrome&ie=UTF-8:43
+[  989970ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) %o @ https://www.npmjs.com/login:0
+[  990020ms] [ERROR] Failed to load resource: net::ERR_BLOCKED_BY_RESPONSE.NotSameOrigin @ https://static-production.npmjs.com/f1c1c1c0922247b9630c1edb1e6f31b2.png:0
+[ 1000640ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) %o @ https://www.npmjs.com/login:0
+[ 1008720ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) %o @ https://www.npmjs.com/login:0
+[ 1026823ms] The operation either timed out or was not allowed. See: https://www.w3.org/TR/webauthn-2/#sctn-privacy-considerations-client.
