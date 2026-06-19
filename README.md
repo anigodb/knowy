@@ -1,7 +1,7 @@
 # Knowy
 
 <p align="center">
-  <img src="icon/icon.png" alt="Knowy logo" width="200">
+  <img src="icon/icon.png" alt="Knowy logo" width="400">
 </p>
 
 Persistent storage backend for AI-powered personal assistants. Provides a structured, searchable data layer for pages, notes, tasks, chats, files, calendars, and knowledge bases
