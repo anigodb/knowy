@@ -14,15 +14,11 @@ A high-level workspace boundary representing one domain of the user's life (e.g.
 
 ## Source Message
 
-An optional reference from any mutable entity (Task, Event, Note, Page, Article, File) back to the Chat Message that created it. Enables traceability: "what conversation produced this entity?"
+An optional reference from any mutable entity (Task, Event, Page, Article, File) back to the Chat Message that created it. Enables traceability: "what conversation produced this entity?"
 
 ## Page
 
-A durable, structured markdown document — meeting notes, project plan, reference doc. Rendered as markdown. The user browses and re-reads it over time.
-
-## Note
-
-A transient, unstructured piece of text — sticky note, scratchpad, phone number, quick thought. Minimal metadata. The user jots it down and searches for it when needed.
+A durable document of any format (markdown, HTML, plain text, JSON, XML). Has a `type` field indicating the format (`md`, `html`, `text`, `json`, `xml`). The user browses and re-reads it over time.
 
 ## Article
 
@@ -42,11 +38,11 @@ An action item with a title, optional due date, status, and detail text. Status 
 
 ## Message
 
-A chat message within a Chat session. Has a `tag` field containing an array of User IDs who are @-mentioned/notified. Designed for future team collaboration — in V1 single-user mode, tags may reference AI agent identities.
+A chat message within a Chat session. Has a `mention` field containing an array of User IDs who are @-mentioned/notified. Designed for future team collaboration — in V1 single-user mode, mentions may reference AI agent identities.
 
 ## File
 
-A reference to a file stored in `<channel-dir>/files/`. Can be attached to any entity (Note, Page, Task, Event, Message) via an optional `files` field on the parent entity containing an array of File IDs.
+A reference to a file stored in `<channel-dir>/files/`. Can be attached to any entity (Page, Task, Event, Message) via an optional `files` field on the parent entity containing an array of File IDs.
 
 ## SearchResult
 
@@ -55,3 +51,7 @@ The shape returned by `channel.search()` and `kb.search()`. Contains identifying
 ## Timestamps
 
 Every entity record automatically carries `createdAt` and `updatedAt` ISO 8601 strings, set by Knowy on create and update. Consumers never set these directly.
+
+## Links
+
+An optional field on every entity containing an array of record IDs that this entity references. Expresses relationships between records (e.g. a Task linking to the Page describing its implementation, or an Event linking to a Task it relates to). Accepted as a single string or array on input, always stored as an array. Referenced IDs must exist at write time (validated on save and update).

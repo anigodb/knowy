@@ -3,10 +3,12 @@ import { Chat } from './chat.js';
 import { KnowledgeBase } from './knowledge.js';
 import { Schedule } from './schedule.js';
 import type {
-  User, Page, Note, Task, FileRecord,
+  User, Page, Task, FileRecord,
   ChatSummary,
   SearchResult,
 } from './types.js';
+import { assertKeys, assertString, normalizeLinks } from './validate.js';
+import { generateId } from './id.js';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 
@@ -19,7 +21,6 @@ function now(): string {
 const ENTITY_TYPE_MAP: Record<string, string> = {
   users: 'User',
   pages: 'Page',
-  notes: 'Note',
   tasks: 'Task',
   files: 'File',
   messages: 'Message',
@@ -27,19 +28,17 @@ const ENTITY_TYPE_MAP: Record<string, string> = {
 };
 
 const RAG_INDEXES: Record<string, string[]> = {
-  pages: ['md'],
-  notes: ['content'],
+  pages: ['content'],
   tasks: ['title', 'detail'],
   messages: ['content'],
 };
 
 const ORDINARY_INDEXES: Record<string, string[]> = {
-  messages: ['userId', 'reply', 'tag'],
-  users: ['name'],
-  pages: ['title'],
-  notes: ['title'],
-  tasks: ['title'],
-  files: ['filename'],
+  messages: ['userId', 'reply', 'mention', 'links'],
+  users: ['name', 'links'],
+  pages: ['title', 'links'],
+  tasks: ['title', 'links'],
+  files: ['filename', 'links'],
 };
 
 function entityToId<T>(doc: Doc): T & { id: string } {
@@ -62,7 +61,7 @@ export class Channel {
     this.dbPath = path.join(dir, 'knowy.db');
     this.db = AnigoDB.connect(key ? { path: this.dbPath, key } : { path: this.dbPath });
 
-    for (const name of ['users', 'pages', 'notes', 'tasks', 'files', 'chats', 'messages']) {
+    for (const name of ['users', 'pages', 'tasks', 'files', 'chats', 'messages']) {
       this.collections.set(name, this.db.collection(name));
     }
 
@@ -81,10 +80,12 @@ export class Channel {
       this.collections.set(name, c);
       if (name.startsWith('kb_')) {
         c.createIndex({ title: 1 });
+        c.createIndex({ links: 1 });
       } else if (name.startsWith('schedule_')) {
         c.createIndex({ title: 1 });
         c.createIndex({ start: 1 });
         c.createIndex({ end: 1 });
+        c.createIndex({ links: 1 });
       }
     }
     return c;
@@ -102,10 +103,18 @@ export class Channel {
 
   // ── User CRUD ──
 
-  saveUser(input: { name: string; metadata?: Record<string, unknown> }): User {
+  saveUser(input: { name: string; metadata?: Record<string, unknown>; links?: string | string[] }): User {
+    assertKeys(input, ['name', 'metadata', 'links'], 'saveUser');
+    assertString(input.name, 'name', 'saveUser');
+    const links = normalizeLinks(input.links);
+    if (links) for (const id of links) {
+      if (!this.resolveRecord(id)) throw new Error(`saveUser: cannot link to nonexistent record "${id}"`);
+    }
+    const id = generateId('user');
     const ts = now();
-    const { insertedId } = this.coll('users').insertOne({ ...input, createdAt: ts, updatedAt: ts });
-    return { id: insertedId, ...input, createdAt: ts, updatedAt: ts } as User;
+    const doc = { _id: id, name: input.name, metadata: input.metadata, links, createdAt: ts, updatedAt: ts };
+    this.coll('users').insertOne(doc);
+    return entityToId<User>(doc as Doc & { _id: string });
   }
 
   getUser(id: string): User | null {
@@ -119,8 +128,14 @@ export class Channel {
       .map(d => entityToId<User>(d));
   }
 
-  updateUser(id: string, changes: Partial<Pick<User, 'name' | 'metadata'>>): User {
-    this.coll('users').updateOne({ _id: id }, { $set: { ...changes, updatedAt: now() } });
+  updateUser(id: string, changes: Partial<Pick<User, 'name' | 'metadata' | 'links'>>): User {
+    assertKeys(changes, ['name', 'metadata', 'links'], 'updateUser');
+    const links = normalizeLinks(changes.links);
+    if (links) for (const id of links) {
+      if (!this.resolveRecord(id)) throw new Error(`updateUser: cannot link to nonexistent record "${id}"`);
+    }
+    const { links: _omitLinks, ...cleanChanges } = changes;
+    this.updateDoc('users', id, { ...cleanChanges, ...(links !== undefined ? { links } : {}) });
     return this.getUser(id)!;
   }
 
@@ -128,10 +143,25 @@ export class Channel {
 
   // ── Page CRUD ──
 
-  savePage(input: { title: string; md: string; files?: string[]; sourceMessageId?: string }): Page {
+  savePage(input: { title: string; content: string; type?: 'md' | 'html' | 'text' | 'json' | 'xml'; links?: string | string[]; files?: string[]; sourceMessageId?: string }): Page {
+    const ALLOWED_KEYS = new Set(['title', 'content', 'type', 'links', 'files', 'sourceMessageId']);
+    for (const key of Object.keys(input)) {
+      if (!ALLOWED_KEYS.has(key)) {
+        throw new Error(`savePage: unrecognized field "${key}". Did you mean "content"?`);
+      }
+    }
+    if (typeof input.content !== 'string' || input.content.length === 0) {
+      throw new Error('savePage: "content" is required and must be a non-empty string');
+    }
+    const links = normalizeLinks(input.links);
+    if (links) for (const id of links) {
+      if (!this.resolveRecord(id)) throw new Error(`savePage: cannot link to nonexistent record "${id}"`);
+    }
+    const id = generateId('page');
     const ts = now();
-    const { insertedId } = this.coll('pages').insertOne({ ...input, createdAt: ts, updatedAt: ts });
-    return { id: insertedId, ...input, createdAt: ts, updatedAt: ts } as Page;
+    const doc = { _id: id, title: input.title, content: input.content, type: input.type ?? 'md', links, files: input.files, sourceMessageId: input.sourceMessageId, createdAt: ts, updatedAt: ts };
+    this.coll('pages').insertOne(doc);
+    return entityToId<Page>(doc as Doc & { _id: string });
   }
 
   getPage(id: string): Page | null {
@@ -145,47 +175,34 @@ export class Channel {
       .map(d => entityToId<Page>(d));
   }
 
-  updatePage(id: string, changes: Partial<Pick<Page, 'title' | 'md' | 'files'>>): Page {
-    this.coll('pages').updateOne({ _id: id }, { $set: { ...changes, updatedAt: now() } });
+  updatePage(id: string, changes: Partial<Pick<Page, 'title' | 'content' | 'type' | 'links' | 'files'>>): Page {
+    assertKeys(changes, ['title', 'content', 'type', 'links', 'files'], 'updatePage');
+    const links = normalizeLinks(changes.links);
+    if (links) for (const id of links) {
+      if (!this.resolveRecord(id)) throw new Error(`updatePage: cannot link to nonexistent record "${id}"`);
+    }
+    const { links: _omitLinks, ...cleanChanges } = changes;
+    this.updateDoc('pages', id, { ...cleanChanges, ...(links !== undefined ? { links } : {}) });
     return this.getPage(id)!;
   }
 
   deletePage(id: string): void { this.coll('pages').deleteOne({ _id: id }); }
 
-  // ── Note CRUD ──
-
-  saveNote(input: { title: string; content: string; files?: string[]; sourceMessageId?: string }): Note {
-    const ts = now();
-    const { insertedId } = this.coll('notes').insertOne({ ...input, createdAt: ts, updatedAt: ts });
-    return { id: insertedId, ...input, createdAt: ts, updatedAt: ts } as Note;
-  }
-
-  getNote(id: string): Note | null {
-    const doc = this.coll('notes').findOne({ _id: id });
-    if (!doc) return null;
-    return entityToId<Note>(doc as Doc & { _id: string });
-  }
-
-  listNotes(filter?: Record<string, unknown>): Note[] {
-    return (this.coll('notes').find(filter ?? {}) as (Doc & { _id: string })[])
-      .map(d => entityToId<Note>(d));
-  }
-
-  updateNote(id: string, changes: Partial<Pick<Note, 'title' | 'content' | 'files'>>): Note {
-    this.coll('notes').updateOne({ _id: id }, { $set: { ...changes, updatedAt: now() } });
-    return this.getNote(id)!;
-  }
-
-  deleteNote(id: string): void { this.coll('notes').deleteOne({ _id: id }); }
-
   // ── Task CRUD ──
 
-  saveTask(input: { title: string; due?: string; status?: string; detail?: string; files?: string[]; sourceMessageId?: string }): Task {
+  saveTask(input: { title: string; due?: string; status?: string; detail?: string; links?: string | string[]; files?: string[]; sourceMessageId?: string }): Task {
+    assertKeys(input, ['title', 'due', 'status', 'detail', 'links', 'files', 'sourceMessageId'], 'saveTask');
+    assertString(input.title, 'title', 'saveTask');
+    const links = normalizeLinks(input.links);
+    if (links) for (const id of links) {
+      if (!this.resolveRecord(id)) throw new Error(`saveTask: cannot link to nonexistent record "${id}"`);
+    }
+    const id = generateId('task');
     const ts = now();
-    const doc = { ...input, status: input.status ?? 'pending', createdAt: ts, updatedAt: ts };
+    const doc = { _id: id, title: input.title, due: input.due, status: input.status ?? 'pending', detail: input.detail, links, files: input.files, sourceMessageId: input.sourceMessageId, createdAt: ts, updatedAt: ts };
     if (input.detail === undefined) delete (doc as Record<string, unknown>).detail;
-    const { insertedId } = this.coll('tasks').insertOne(doc);
-    return { id: insertedId, ...doc } as Task;
+    this.coll('tasks').insertOne(doc);
+    return entityToId<Task>(doc as Doc & { _id: string });
   }
 
   getTask(id: string): Task | null {
@@ -200,7 +217,13 @@ export class Channel {
   }
 
   updateTask(id: string, changes: Partial<Omit<Task, 'id' | 'createdAt' | 'updatedAt'>>): Task {
-    this.coll('tasks').updateOne({ _id: id }, { $set: { ...changes, updatedAt: now() } });
+    assertKeys(changes, ['title', 'due', 'status', 'detail', 'links', 'files', 'sourceMessageId'], 'updateTask');
+    const links = normalizeLinks(changes.links);
+    if (links) for (const id of links) {
+      if (!this.resolveRecord(id)) throw new Error(`updateTask: cannot link to nonexistent record "${id}"`);
+    }
+    const { links: _omitLinks, ...cleanChanges } = changes;
+    this.updateDoc('tasks', id, { ...cleanChanges, ...(links !== undefined ? { links } : {}) });
     return this.getTask(id)!;
   }
 
@@ -208,22 +231,32 @@ export class Channel {
 
   // ── File CRUD ──
 
-  saveFile(input: { filename: string; path: string; sourceMessageId?: string }): FileRecord {
+  saveFile(input: { filename: string; path: string; links?: string | string[]; sourceMessageId?: string }): FileRecord {
+    assertKeys(input, ['filename', 'path', 'links', 'sourceMessageId'], 'saveFile');
+    assertString(input.filename, 'filename', 'saveFile');
+    assertString(input.path, 'path', 'saveFile');
+    const links = normalizeLinks(input.links);
+    if (links) for (const id of links) {
+      if (!this.resolveRecord(id)) throw new Error(`saveFile: cannot link to nonexistent record "${id}"`);
+    }
+    const id = generateId('file');
     const ts = now();
     const filesDir = path.join(path.dirname(this.dbPath), 'files');
     const destPath = path.join(filesDir, input.filename);
     fs.copyFileSync(input.path, destPath);
     const stat = fs.statSync(destPath);
     const doc = {
+      _id: id,
       filename: input.filename,
       path: input.filename,
       size: stat.size,
+      links,
       sourceMessageId: input.sourceMessageId,
       createdAt: ts,
       updatedAt: ts,
     };
-    const { insertedId } = this.coll('files').insertOne(doc);
-    return { id: insertedId, ...doc } as FileRecord;
+    this.coll('files').insertOne(doc);
+    return entityToId<FileRecord>(doc as Doc & { _id: string });
   }
 
   getFile(id: string): FileRecord | null {
@@ -237,8 +270,14 @@ export class Channel {
       .map(d => entityToId<FileRecord>(d));
   }
 
-  updateFile(id: string, changes: Partial<Pick<FileRecord, 'filename' | 'path'>>): FileRecord {
-    this.coll('files').updateOne({ _id: id }, { $set: { ...changes, updatedAt: now() } });
+  updateFile(id: string, changes: Partial<Pick<FileRecord, 'filename' | 'path' | 'links'>>): FileRecord {
+    assertKeys(changes, ['filename', 'path', 'links'], 'updateFile');
+    const links = normalizeLinks(changes.links);
+    if (links) for (const id of links) {
+      if (!this.resolveRecord(id)) throw new Error(`updateFile: cannot link to nonexistent record "${id}"`);
+    }
+    const { links: _omitLinks, ...cleanChanges } = changes;
+    this.updateDoc('files', id, { ...cleanChanges, ...(links !== undefined ? { links } : {}) });
     return this.getFile(id)!;
   }
 
@@ -247,12 +286,12 @@ export class Channel {
   // ── KnowledgeBase ──
 
   knowledge(name: string): KnowledgeBase {
+    assertString(name, 'name', 'knowledge');
     return new KnowledgeBase(name, this);
   }
 
-  // ── Schedule ──
-
   schedule(name: string): Schedule {
+    assertString(name, 'name', 'schedule');
     return new Schedule(name, this);
   }
 
@@ -274,10 +313,10 @@ export class Channel {
     const ts = now();
     let title = '';
     if (arg) title = arg.title;
-    const { insertedId } = this.coll('chats').insertOne({ title, sessionId: '', createdAt: ts, updatedAt: ts });
-    this.coll('chats').updateOne({ _id: insertedId }, { $set: { sessionId: insertedId } });
-    const chat = new Chat(insertedId, this);
-    this.chatCache.set(insertedId, chat);
+    const id = generateId('chat');
+    this.coll('chats').insertOne({ _id: id, title, sessionId: id, createdAt: ts, updatedAt: ts });
+    const chat = new Chat(id, this);
+    this.chatCache.set(id, chat);
     return chat;
   }
 
@@ -314,7 +353,7 @@ export class Channel {
           entityType: ENTITY_TYPE_MAP[options.collection!] ?? 'Article',
           id,
           title: (entity.title ?? entity.name ?? '') as string,
-          snippet: (entity.content ?? entity.md ?? entity.detail ?? '') as string,
+          snippet: (entity.content ?? entity.detail ?? '') as string,
           score: r._score as number,
           entity: { id, ...entity },
         };
@@ -334,7 +373,7 @@ export class Channel {
         entityType: ENTITY_TYPE_MAP[collName] ?? 'Article',
         id,
         title: (entity.title ?? entity.name ?? '') as string,
-        snippet: (entity.content ?? entity.md ?? entity.detail ?? '') as string,
+        snippet: (entity.content ?? entity.detail ?? '') as string,
         score: r._score as number,
         entity: { id, ...entity },
       };
@@ -351,7 +390,21 @@ export class Channel {
     return this.db;
   }
 
+  resolveRecord(id: string): boolean {
+    for (const [, coll] of this.collections) {
+      if (coll.findOne({ _id: id })) return true;
+    }
+    return false;
+  }
+
+  private updateDoc(collection: string, id: string, changes: Record<string, unknown>): void {
+    const c = this.coll(collection);
+    const existing = c.findOne({ _id: id });
+    if (!existing) return;
+    const doc: Record<string, unknown> = { ...existing, ...changes, updatedAt: now() };
+    delete doc._id;
+    c.findOneAndReplace({ _id: id }, doc as Record<string, unknown>);
+  }
+
 
 }
-
-

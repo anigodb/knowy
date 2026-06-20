@@ -2,6 +2,8 @@ import type { Collection } from 'anigodb';
 import type { Channel } from './channel.js';
 import type { Message } from './types.js';
 import { newTimestamp } from './types.js';
+import { assertKeys, assertString, normalizeLinks } from './validate.js';
+import { generateId } from './id.js';
 
 type Doc<T> = Record<string, unknown> & { _id: string };
 
@@ -31,20 +33,34 @@ export class Chat {
     return this.channel.getCollection('chats');
   }
 
-  saveMessage(input: { userId: string; content: string; reply?: string; tag?: string[] }): Message {
+  saveMessage(input: { userId: string; content: string; reply?: string; mention?: string[]; links?: string | string[] }): Message {
+    assertKeys(input, ['userId', 'content', 'reply', 'mention', 'links'], 'saveMessage');
+    assertString(input.userId, 'userId', 'saveMessage');
+    assertString(input.content, 'content', 'saveMessage');
+    const links = normalizeLinks(input.links);
+    if (links) for (const id of links) {
+      if (!this.channel.resolveRecord(id)) throw new Error(`saveMessage: cannot link to nonexistent record "${id}"`);
+    }
+    const id = generateId('message');
     const ts = newTimestamp();
     const doc = {
-      ...input,
+      _id: id,
+      userId: input.userId,
+      content: input.content,
+      reply: input.reply,
+      mention: input.mention,
+      links,
       sessionId: this.sessionId,
       createdAt: ts,
     };
-    const result = this.messagesColl().insertOne(doc);
+    this.messagesColl().insertOne(doc);
     this.chatColl().updateOne(
       { sessionId: this.sessionId },
       { $set: { updatedAt: ts } }
     );
     this.updatedAt = ts;
-    return { id: result.insertedId, ...doc } as unknown as Message;
+    const { _id, ...rest } = doc;
+    return { id: _id, ...rest } as unknown as Message;
   }
 
   getMessage(id: string): Message | null {
@@ -87,6 +103,7 @@ export class Chat {
   }
 
   setTitle(title: string): void {
+    assertString(title, 'title', 'setTitle');
     const ts = newTimestamp();
     this.chatColl().updateOne(
       { sessionId: this.sessionId },

@@ -1,6 +1,8 @@
 import type { Collection } from 'anigodb';
 import type { Channel } from './channel.js';
 import type { Event } from './types.js';
+import { assertKeys, assertString, normalizeLinks } from './validate.js';
+import { generateId } from './id.js';
 
 type Doc<T> = Record<string, unknown> & { _id: string };
 
@@ -31,13 +33,23 @@ export class Schedule {
     rrule?: string;
     description?: string;
     location?: string;
+    links?: string | string[];
     files?: string[];
     sourceMessageId?: string;
   }): Event {
+    assertKeys(input, ['title', 'start', 'end', 'isAllDay', 'rrule', 'description', 'location', 'links', 'files', 'sourceMessageId'], 'saveEvent');
+    assertString(input.title, 'title', 'saveEvent');
+    assertString(input.start, 'start', 'saveEvent');
+    const links = normalizeLinks(input.links);
+    if (links) for (const id of links) {
+      if (!this.channel.resolveRecord(id)) throw new Error(`saveEvent: cannot link to nonexistent record "${id}"`);
+    }
+    const id = generateId('event');
     const ts = new Date().toISOString();
-    const doc = { ...input, createdAt: ts, updatedAt: ts };
-    const result = this.collection().insertOne(doc);
-    return { id: result.insertedId, ...doc } as unknown as Event;
+    const doc = { _id: id, title: input.title, start: input.start, end: input.end, isAllDay: input.isAllDay, rrule: input.rrule, description: input.description, location: input.location, links, files: input.files, sourceMessageId: input.sourceMessageId, createdAt: ts, updatedAt: ts };
+    this.collection().insertOne(doc);
+    const { _id, ...rest } = doc;
+    return { id: _id, ...rest } as unknown as Event;
   }
 
   getEvent(id: string): Event | null {
@@ -56,8 +68,19 @@ export class Schedule {
   }
 
   updateEvent(id: string, changes: Partial<Omit<Event, 'id' | 'createdAt' | 'updatedAt'>>): Event {
+    assertKeys(changes, ['title', 'start', 'end', 'isAllDay', 'rrule', 'description', 'location', 'links', 'files', 'sourceMessageId'], 'updateEvent');
+    const links = normalizeLinks(changes.links);
+    if (links) for (const id of links) {
+      if (!this.channel.resolveRecord(id)) throw new Error(`updateEvent: cannot link to nonexistent record "${id}"`);
+    }
+    const { links: _omitLinks, ...cleanChanges } = changes;
     const ts = new Date().toISOString();
-    this.collection().updateOne({ _id: id }, { $set: { ...changes, updatedAt: ts } });
+    const coll = this.collection();
+    const existing = coll.findOne({ _id: id });
+    if (!existing) throw new Error('updateEvent: event not found');
+    const doc: Record<string, unknown> = { ...existing, ...cleanChanges, ...(links !== undefined ? { links } : {}), updatedAt: ts };
+    delete doc._id;
+    coll.findOneAndReplace({ _id: id }, doc as Record<string, unknown>);
     return this.getEvent(id)!;
   }
 

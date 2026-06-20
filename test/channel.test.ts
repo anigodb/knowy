@@ -27,7 +27,7 @@ describe('Channel', () => {
   describe('User CRUD', () => {
     it('saves and retrieves a user', () => {
       const user = channel.saveUser({ name: 'Alice', metadata: { role: 'admin' } });
-      expect(user.id).toBeTruthy();
+      expect(user.id).toMatch(/^user-/);
       expect(user.name).toBe('Alice');
       expect(user.metadata).toEqual({ role: 'admin' });
       expect(user.createdAt).toBeTruthy();
@@ -61,14 +61,27 @@ describe('Channel', () => {
       channel.deleteUser(user.id);
       expect(channel.getUser(user.id)).toBeNull();
     });
+
+    it('rejects saveUser with unknown keys', () => {
+      expect(() => channel.saveUser({ name: 'X', tag: 'bad' as never })).toThrow('saveUser: unrecognized field "tag"');
+    });
+
+    it('rejects saveUser with empty name', () => {
+      expect(() => channel.saveUser({ name: '' })).toThrow('saveUser: "name" is required');
+    });
+
+    it('rejects updateUser with unknown keys', () => {
+      const user = channel.saveUser({ name: 'X' });
+      expect(() => channel.updateUser(user.id, { md: 'bad' as never })).toThrow('updateUser: unrecognized field "md"');
+    });
   });
 
   describe('Page CRUD', () => {
     it('saves and retrieves a page', () => {
-      const page = channel.savePage({ title: 'Notes', md: '# Meeting Notes' });
-      expect(page.id).toBeTruthy();
+      const page = channel.savePage({ title: 'Notes', content: '# Meeting Notes' });
+      expect(page.id).toMatch(/^page-/);
       expect(page.title).toBe('Notes');
-      expect(page.md).toBe('# Meeting Notes');
+      expect(page.content).toBe('# Meeting Notes');
       expect(page.createdAt).toBeTruthy();
 
       const got = channel.getPage(page.id);
@@ -77,57 +90,62 @@ describe('Channel', () => {
     });
 
     it('lists pages', () => {
-      channel.savePage({ title: 'A', md: '# A' });
-      channel.savePage({ title: 'B', md: '# B' });
+      channel.savePage({ title: 'A', content: '# A' });
+      channel.savePage({ title: 'B', content: '# B' });
       expect(channel.listPages().length).toBe(2);
     });
 
     it('updates a page', () => {
-      const page = channel.savePage({ title: 'Old', md: 'old' });
+      const page = channel.savePage({ title: 'Old', content: 'old' });
       const updated = channel.updatePage(page.id, { title: 'New' });
       expect(updated.title).toBe('New');
-      expect(updated.md).toBe('old');
+      expect(updated.content).toBe('old');
     });
 
     it('deletes a page', () => {
-      const page = channel.savePage({ title: 'X', md: '# X' });
+      const page = channel.savePage({ title: 'X', content: '# X' });
       channel.deletePage(page.id);
       expect(channel.getPage(page.id)).toBeNull();
     });
-  });
 
-  describe('Note CRUD', () => {
-    it('saves and retrieves a note', () => {
-      const note = channel.saveNote({ title: 'Idea', content: 'Use SQLite' });
-      expect(note.id).toBeTruthy();
-      expect(note.content).toBe('Use SQLite');
+    it('defaults type to md', () => {
+      const page = channel.savePage({ title: 'NoType', content: 'hello' });
+      expect(page.type).toBe('md');
     });
 
-    it('lists notes with filter', () => {
-      channel.saveNote({ title: 'Alpha', content: 'a' });
-      channel.saveNote({ title: 'Beta', content: 'b' });
-      const notes = channel.listNotes({ title: { $regex: 'Alpha' } });
-      expect(notes.length).toBe(1);
-      expect(notes[0].title).toBe('Alpha');
+    it('accepts explicit type', () => {
+      const page = channel.savePage({ title: 'HTML', content: '<p>hi</p>', type: 'html' });
+      expect(page.type).toBe('html');
     });
 
-    it('updates a note', () => {
-      const note = channel.saveNote({ title: 'T', content: 'C' });
-      const updated = channel.updateNote(note.id, { title: 'T2' });
-      expect(updated.title).toBe('T2');
-      expect(updated.content).toBe('C');
+    it('updates type', () => {
+      const page = channel.savePage({ title: 'Switch', content: 'text', type: 'text' });
+      const updated = channel.updatePage(page.id, { type: 'md' });
+      expect(updated.type).toBe('md');
     });
 
-    it('deletes a note', () => {
-      const note = channel.saveNote({ title: 'T', content: 'C' });
-      channel.deleteNote(note.id);
-      expect(channel.getNote(note.id)).toBeNull();
+    it('rejects unknown fields like md', () => {
+      expect(() =>
+        channel.savePage({ title: 'Bad', md: 'should not work' })
+      ).toThrow();
+    });
+
+    it('rejects missing content', () => {
+      expect(() =>
+        channel.savePage({ title: 'NoContent' })
+      ).toThrow();
+    });
+
+    it('rejects updatePage with unknown keys', () => {
+      const page = channel.savePage({ title: 'X', content: 'x' });
+      expect(() => channel.updatePage(page.id, { md: 'bad' as never })).toThrow('updatePage: unrecognized field "md"');
     });
   });
 
   describe('Task CRUD', () => {
     it('saves a task with default status', () => {
       const task = channel.saveTask({ title: 'Buy milk', detail: 'Buy at store' });
+      expect(task.id).toMatch(/^task-/);
       expect(task.status).toBe('pending');
     });
 
@@ -154,6 +172,19 @@ describe('Channel', () => {
       channel.deleteTask(task.id);
       expect(channel.getTask(task.id)).toBeNull();
     });
+
+    it('rejects saveTask with unknown keys', () => {
+      expect(() => channel.saveTask({ title: 'X', md: 'bad' as never })).toThrow('saveTask: unrecognized field "md"');
+    });
+
+    it('rejects saveTask with empty title', () => {
+      expect(() => channel.saveTask({ title: '' })).toThrow('saveTask: "title" is required');
+    });
+
+    it('rejects updateTask with unknown keys', () => {
+      const task = channel.saveTask({ title: 'X' });
+      expect(() => channel.updateTask(task.id, { md: 'bad' as never })).toThrow('updateTask: unrecognized field "md"');
+    });
   });
 
   describe('File CRUD', () => {
@@ -161,7 +192,7 @@ describe('Channel', () => {
       const srcPath = path.join(dir, 'test-file.txt');
       fs.writeFileSync(srcPath, 'hello world');
       const file = channel.saveFile({ filename: 'hello.txt', path: srcPath });
-      expect(file.id).toBeTruthy();
+      expect(file.id).toMatch(/^file-/);
       expect(file.filename).toBe('hello.txt');
       expect(file.size).toBe(11);
 
@@ -185,16 +216,37 @@ describe('Channel', () => {
       channel.deleteFile(file.id);
       expect(channel.getFile(file.id)).toBeNull();
     });
+
+    it('rejects saveFile with unknown keys', () => {
+      const srcPath = path.join(dir, 'x.txt');
+      fs.writeFileSync(srcPath, 'x');
+      expect(() => channel.saveFile({ filename: 'x.txt', path: srcPath, md: 'bad' as never })).toThrow('saveFile: unrecognized field "md"');
+    });
+
+    it('rejects saveFile with empty filename', () => {
+      expect(() => channel.saveFile({ filename: '', path: 'x.txt' })).toThrow('saveFile: "filename" is required');
+    });
+
+    it('rejects saveFile with empty path', () => {
+      expect(() => channel.saveFile({ filename: 'x.txt', path: '' })).toThrow('saveFile: "path" is required');
+    });
+
+    it('rejects updateFile with unknown keys', () => {
+      const srcPath = path.join(dir, 'x.txt');
+      fs.writeFileSync(srcPath, 'x');
+      const file = channel.saveFile({ filename: 'x.txt', path: srcPath });
+      expect(() => channel.updateFile(file.id, { md: 'bad' as never })).toThrow('updateFile: unrecognized field "md"');
+    });
   });
 
   describe('Chat & Messages', () => {
     it('creates a chat and sends messages', () => {
       const chat = channel.chat();
-      expect(chat.sessionId).toBeTruthy();
+      expect(chat.sessionId).toMatch(/^chat-/);
       expect(chat.title).toBe('');
 
       const msg = chat.saveMessage({ userId: 'alice', content: 'Hello' });
-      expect(msg.id).toBeTruthy();
+      expect(msg.id).toMatch(/^message-/);
       expect(msg.content).toBe('Hello');
       expect(msg.sessionId).toBe(chat.sessionId);
     });
@@ -246,6 +298,26 @@ describe('Channel', () => {
       expect(chats.length).toBe(2);
       expect(chats.map(c => c.title).sort()).toEqual(['Chat A', 'Chat B']);
     });
+
+    it('rejects saveMessage with unknown keys', () => {
+      const chat = channel.chat();
+      expect(() => chat.saveMessage({ userId: 'alice', content: 'Hello', tag: ['bob'] as never })).toThrow('saveMessage: unrecognized field "tag"');
+    });
+
+    it('rejects saveMessage with empty userId', () => {
+      const chat = channel.chat();
+      expect(() => chat.saveMessage({ userId: '', content: 'Hello' })).toThrow('saveMessage: "userId" is required');
+    });
+
+    it('rejects saveMessage with empty content', () => {
+      const chat = channel.chat();
+      expect(() => chat.saveMessage({ userId: 'alice', content: '' })).toThrow('saveMessage: "content" is required');
+    });
+
+    it('rejects setTitle with empty title', () => {
+      const chat = channel.chat();
+      expect(() => chat.setTitle('')).toThrow('setTitle: "title" is required');
+    });
   });
 
   describe('getReplies', () => {
@@ -283,7 +355,7 @@ describe('Channel', () => {
     it('saves and retrieves articles', () => {
       const kb = channel.knowledge('Company Wiki');
       const article = kb.saveArticle({ title: 'Remote Policy', content: 'WFH 3 days per week', answer: '3 days' });
-      expect(article.id).toBeTruthy();
+      expect(article.id).toMatch(/^article-/);
       expect(article.title).toBe('Remote Policy');
 
       const got = kb.getArticle(article.id);
@@ -312,6 +384,27 @@ describe('Channel', () => {
       kb.deleteArticle(article.id);
       expect(kb.getArticle(article.id)).toBeNull();
     });
+
+    it('rejects saveArticle with unknown keys', () => {
+      const kb = channel.knowledge('Wiki');
+      expect(() => kb.saveArticle({ title: 'X', content: 'x', md: 'bad' as never })).toThrow('saveArticle: unrecognized field "md"');
+    });
+
+    it('rejects saveArticle with empty title', () => {
+      const kb = channel.knowledge('Wiki');
+      expect(() => kb.saveArticle({ title: '', content: 'x' })).toThrow('saveArticle: "title" is required');
+    });
+
+    it('rejects saveArticle with empty content', () => {
+      const kb = channel.knowledge('Wiki');
+      expect(() => kb.saveArticle({ title: 'X', content: '' })).toThrow('saveArticle: "content" is required');
+    });
+
+    it('rejects updateArticle with unknown keys', () => {
+      const kb = channel.knowledge('Wiki');
+      const article = kb.saveArticle({ title: 'X', content: 'x' });
+      expect(() => kb.updateArticle(article.id, { md: 'bad' as never })).toThrow('updateArticle: unrecognized field "md"');
+    });
   });
 
   describe('Schedule', () => {
@@ -322,7 +415,7 @@ describe('Channel', () => {
         start: '2026-06-19T09:00:00Z',
         end: '2026-06-19T09:15:00Z',
       });
-      expect(event.id).toBeTruthy();
+      expect(event.id).toMatch(/^event-/);
       expect(event.title).toBe('Standup');
 
       const got = sched.getEvent(event.id);
@@ -364,12 +457,33 @@ describe('Channel', () => {
       sched.deleteEvent(event.id);
       expect(sched.getEvent(event.id)).toBeNull();
     });
+
+    it('rejects saveEvent with unknown keys', () => {
+      const sched = channel.schedule('Work');
+      expect(() => sched.saveEvent({ title: 'X', start: '2026-06-19T00:00:00Z', md: 'bad' as never })).toThrow('saveEvent: unrecognized field "md"');
+    });
+
+    it('rejects saveEvent with empty title', () => {
+      const sched = channel.schedule('Work');
+      expect(() => sched.saveEvent({ title: '', start: '2026-06-19T00:00:00Z' })).toThrow('saveEvent: "title" is required');
+    });
+
+    it('rejects saveEvent with empty start', () => {
+      const sched = channel.schedule('Work');
+      expect(() => sched.saveEvent({ title: 'X', start: '' })).toThrow('saveEvent: "start" is required');
+    });
+
+    it('rejects updateEvent with unknown keys', () => {
+      const sched = channel.schedule('Work');
+      const event = sched.saveEvent({ title: 'X', start: '2026-06-19T00:00:00Z' });
+      expect(() => sched.updateEvent(event.id, { md: 'bad' as never })).toThrow('updateEvent: unrecognized field "md"');
+    });
   });
 
   describe('Search', () => {
     it('searches across collections', () => {
-      channel.savePage({ title: 'Project Plan', md: 'Build the AI assistant' });
-      channel.saveNote({ title: 'Idea', content: 'AI assistant with RAG' });
+      channel.savePage({ title: 'Project Plan', content: 'Build the AI assistant' });
+      channel.savePage({ title: 'Idea', content: 'AI assistant with RAG', type: 'text' });
       channel.saveTask({ title: 'Setup RAG', detail: 'Configure the RAG pipeline' });
 
       const results = channel.search('AI assistant', { limit: 10 });
@@ -380,8 +494,8 @@ describe('Channel', () => {
     });
 
     it('searches in a specific collection', () => {
-      channel.savePage({ title: 'Alpha', md: 'First project' });
-      channel.saveNote({ title: 'Beta', content: 'Some note' });
+      channel.savePage({ title: 'Alpha', content: 'First project' });
+      channel.savePage({ title: 'Beta', content: 'Some note' });
 
       const results = channel.search('project', { collection: 'pages', limit: 5 });
       expect(results.every(r => r.collection === 'pages')).toBe(true);
@@ -399,6 +513,101 @@ describe('Channel', () => {
         sourceMessageId: msg.id,
       });
       expect(task.sourceMessageId).toBe(msg.id);
+    });
+  });
+
+  describe('Links', () => {
+    it('saves a user with links', () => {
+      const page = channel.savePage({ title: 'P', content: 'c' });
+      const user = channel.saveUser({ name: 'Alice', links: page.id });
+      expect(user.links).toEqual([page.id]);
+    });
+
+    it('saves a page with links array', () => {
+      const task = channel.saveTask({ title: 'T' });
+      const page = channel.savePage({ title: 'P', content: 'c', links: [task.id] });
+      expect(page.links).toEqual([task.id]);
+    });
+
+    it('saves a task with links', () => {
+      const page = channel.savePage({ title: 'P', content: 'c' });
+      const task = channel.saveTask({ title: 'T', links: [page.id] });
+      expect(task.links).toEqual([page.id]);
+    });
+
+    it('saves a file with links', () => {
+      const page = channel.savePage({ title: 'P', content: 'c' });
+      const srcPath = path.join(dir, 'f.txt');
+      fs.writeFileSync(srcPath, 'x');
+      const file = channel.saveFile({ filename: 'f.txt', path: srcPath, links: [page.id] });
+      expect(file.links).toEqual([page.id]);
+    });
+
+    it('saves a message with links', () => {
+      const page = channel.savePage({ title: 'P', content: 'c' });
+      const chat = channel.chat();
+      const msg = chat.saveMessage({ userId: 'alice', content: 'hello', links: [page.id] });
+      expect(msg.links).toEqual([page.id]);
+    });
+
+    it('saves an article with links', () => {
+      const page = channel.savePage({ title: 'P', content: 'c' });
+      const kb = channel.knowledge('Test');
+      const article = kb.saveArticle({ title: 'A', content: 'c', links: [page.id] });
+      expect(article.links).toEqual([page.id]);
+    });
+
+    it('saves an event with links', () => {
+      const task = channel.saveTask({ title: 'T' });
+      const sched = channel.schedule('Work');
+      const event = sched.saveEvent({ title: 'E', start: '2026-06-19T10:00:00Z', links: [task.id] });
+      expect(event.links).toEqual([task.id]);
+    });
+
+    it('updates links on a user', () => {
+      const page = channel.savePage({ title: 'P', content: 'c' });
+      const user = channel.saveUser({ name: 'Alice' });
+      const updated = channel.updateUser(user.id, { links: [page.id] });
+      expect(updated.links).toEqual([page.id]);
+    });
+
+    it('updates links on a page', () => {
+      const task = channel.saveTask({ title: 'T' });
+      const page = channel.savePage({ title: 'P', content: 'c' });
+      const updated = channel.updatePage(page.id, { links: [task.id] });
+      expect(updated.links).toEqual([task.id]);
+    });
+
+    it('updating without links does not clear existing links', () => {
+      const task = channel.saveTask({ title: 'T' });
+      const page = channel.savePage({ title: 'P', content: 'c', links: [task.id] });
+      const updated = channel.updatePage(page.id, { title: 'Renamed' });
+      expect(updated.links).toEqual([task.id]);
+    });
+
+    it('clears links with empty array', () => {
+      const task = channel.saveTask({ title: 'T' });
+      const page = channel.savePage({ title: 'P', content: 'c', links: [task.id] });
+      const updated = channel.updatePage(page.id, { links: [] });
+      expect(updated.links).toEqual([]);
+    });
+
+    it('rejects save with nonexistent link', () => {
+      expect(() =>
+        channel.savePage({ title: 'P', content: 'c', links: ['page-nope'] })
+      ).toThrow('page-nope');
+    });
+
+    it('rejects update with nonexistent link', () => {
+      const page = channel.savePage({ title: 'P', content: 'c' });
+      expect(() =>
+        channel.updatePage(page.id, { links: ['task-nope'] })
+      ).toThrow('task-nope');
+    });
+
+    it('accepts links as valid optional field', () => {
+      const page = channel.savePage({ title: 'NoLinks', content: 'ok' });
+      expect(page.links).toBeUndefined();
     });
   });
 });

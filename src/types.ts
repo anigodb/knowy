@@ -2,24 +2,19 @@ export interface User {
   id: string;
   name: string;
   metadata?: Record<string, unknown>;
+  links?: string[];
   createdAt: string;
   updatedAt: string;
 }
+
+export type PageType = 'md' | 'html' | 'text' | 'json' | 'xml';
 
 export interface Page {
   id: string;
   title: string;
-  md: string;
-  files?: string[];
-  sourceMessageId?: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface Note {
-  id: string;
-  title: string;
   content: string;
+  type?: PageType;
+  links?: string[];
   files?: string[];
   sourceMessageId?: string;
   createdAt: string;
@@ -32,6 +27,7 @@ export interface Task {
   due?: string;
   status: string;
   detail?: string;
+  links?: string[];
   files?: string[];
   sourceMessageId?: string;
   createdAt: string;
@@ -43,6 +39,7 @@ export interface FileRecord {
   filename: string;
   path: string;
   size: number;
+  links?: string[];
   sourceMessageId?: string;
   createdAt: string;
   updatedAt: string;
@@ -53,6 +50,7 @@ export interface Article {
   title: string;
   content: string;
   answer?: string;
+  links?: string[];
   sourceMessageId?: string;
   createdAt: string;
   updatedAt: string;
@@ -67,6 +65,7 @@ export interface Event {
   rrule?: string;
   description?: string;
   location?: string;
+  links?: string[];
   files?: string[];
   sourceMessageId?: string;
   createdAt: string;
@@ -94,7 +93,8 @@ export interface Message {
   userId: string;
   content: string;
   reply?: string;
-  tag?: string[];
+  mention?: string[];
+  links?: string[];
   sessionId: string;
   createdAt: string;
 }

@@ -12,12 +12,9 @@ const bob = channel.saveUser({ name: 'Bob', metadata: { role: 'admin' } });
 console.log('Users:', channel.listUsers().map(u => u.name));
 
 // ── Pages ──
-const page = channel.savePage({ title: 'Meeting Notes', md: '# Q3 Planning' });
-console.log('Page:', channel.getPage(page.id).title);
+const page = channel.savePage({ title: 'Meeting Notes', content: '# Q3 Planning' });
+console.log('Page:', page);
 
-// ── Notes ──
-const note = channel.saveNote({ title: 'Idea', content: 'Use vector search for RAG' });
-console.log('Note:', channel.getNote(note.id).content);
 
 // ── Tasks ──
 const task = channel.saveTask({ title: 'Deploy API', status: 'in_progress', detail: 'Push to production' });
